@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import db from "./db/db.js";
+import usersRouter from "./routes/users.js"; 
 
 dotenv.config();
 
@@ -22,6 +23,8 @@ app.get("/", (req, res) => {
     res.json(results);
   });
 });
+
+app.use("/users", usersRouter);
 
 const PORT = process.env.PORT;
 app.listen(PORT, () => console.log(`Serwer działa na porcie ${PORT}`));

@@ -29,7 +29,7 @@ CREATE TABLE loans (
     borrower_id INT NOT NULL,
     amount DECIMAL(10, 2) NOT NULL,
     description VARCHAR(255),
-    status ENUM('pending', 'paid') DEFAULT 'pending',
+    status ENUM('pending', 'paid', 'unpaid') DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (lender_id) REFERENCES users(id),
     FOREIGN KEY (borrower_id) REFERENCES users(id)
