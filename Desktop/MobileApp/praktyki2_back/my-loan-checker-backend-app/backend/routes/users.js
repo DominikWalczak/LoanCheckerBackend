@@ -1,5 +1,5 @@
 import express from "express";
-import { getUsers, getUser, addUser } from "../controllers/userController.js";
+import { getUsers, getUser, addUser, getByEmail } from "../controllers/userController.js";
 
 const router = express.Router();
 
@@ -9,7 +9,7 @@ router.get("/:id", getUser);
 
 router.post("/", addUser);
 
-router.post("/:email", addUser);
+router.post("/:email", getByEmail);
 
 
 export default router;

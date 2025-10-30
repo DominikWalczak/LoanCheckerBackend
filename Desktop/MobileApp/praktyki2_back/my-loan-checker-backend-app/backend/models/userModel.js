@@ -29,9 +29,12 @@ export function getUserById(id){
 export function getUserByEmail(email){
     try {
         return new Promise((resolve, reject) => {
-            db.query("SELECT * FROM users_login WHERE email = ?", [email], (err, results))
-            if (err) return reject(err);
-            resolve(results[0]);
+            db.query("SELECT * FROM users_login WHERE email = ?", [email], (err, results) =>{
+                if (err) return reject(err);
+                console.log(2)
+                console.log(results[0])
+                resolve(results[0]);
+            });
         });
     } catch(error ){
         console.log(`getUserById Error: ${error}`);
