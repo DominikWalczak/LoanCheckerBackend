@@ -1,25 +1,33 @@
 import { getAllUsers, getUserById, getUserByEmail, createUser } from "../models/userModel.js";
 import bcrypt from 'bcrypt';
 import z from "zod";
+import { Request, Response } from "express";
 
 const saltRounds: number = 12;
 
-export async function getUsers(req, res){
+export async function getUsers(req: Request, res: Response): Promise<void> {
     try {
         const users = await getAllUsers();
         res.json(users);
     } catch (error) {
         console.log(`getUsers Error: ${error}`);
+        res.status(500).json({ message: "Server error" });
     }
 }
 
-export async function getUser(req, res){ // dokończyć
+export async function getUser(req: Request, res: Response): Promise<void> {
     try {
-        const user = await getUserById(req.params.id)
-        if (!user) return res.status(404);
-        
+        const user = await getUserById(req.params.id);
+
+        if (!user) {
+            res.status(404).json({ message: "User not found" });
+            return;
+        }
+
+        res.json(user);
     } catch (error) {
-        console.log(`getUser Error: ${error}`);
+        console.error(`getUser Error: ${error}`);
+        res.status(500).json({ message: "Server error" });
     }
 }
 
@@ -28,36 +36,34 @@ const getByEmailSchema = z.object({
     password: z.string("Recieved data wasn't a text").min(1, " cannot be empty"),
 });
 
-export async function getByEmail(req, res){
+export async function getByEmail(req: Request, res: Response) {
     try {
-        const validateData = getByEmailSchema.safeParse(req.body)
-        if(!validateData.success){
-            console.log(6)
-            return res.status(400).json({ 
-                message: `We lack required data`,
+        const validateData = getByEmailSchema.safeParse(req.body);
+
+        if (!validateData.success) {
+            return res.status(400).json({
+                message: "Invalid data",
                 error: validateData.error,
-        });
+            });
         }
-        const user = await getUserByEmail(validateData.data.email)
-        console.log(validateData.data.email);
-        console.log(validateData.data.password);
-        const validateData2 = getByEmailSchema.safeParse(user);
-        if (!validateData2.success){
-            console.log(8)
-            console.log(validateData2.error);
-            return res.status(400).json({ 
-                message: "User not found",
-                error: validateData2.error,
-        });
+
+        const { email, password } = validateData.data;
+
+        const user = await getUserByEmail(email);
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
         }
-        console.log(user.email);
-        console.log(user.password);
-        console.log(user);
-        const isPasswordValid = validateData.data.password === user.password;
-        if (!isPasswordValid) return res.status(401).json({ message: "Wrong password" });
+
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+            return res.status(401).json({ message: "Wrong password" });
+        }
+
         return res.status(200).json("valid");
     } catch (error) {
-        console.log(`getByEmail Error: ${error}`);
+        console.error(`getByEmail Error: ${error}`);
+        return res.status(500).json({ message: "Server error" });
     }
 }
 
@@ -69,7 +75,7 @@ const addUserSchema = z.object({
     pesel: z.string("Recieved data wasn't a text").min(11, "PESEL must have 11 digits").max(11, "PESEL must have 11 digits"),
 });
 
-export async function addUser(req, res) {
+export async function addUser(req: Request, res: Response) {
     const validateData = addUserSchema.safeParse(req.body);
     if (!validateData.success){
         return res.status(400).json({ 
