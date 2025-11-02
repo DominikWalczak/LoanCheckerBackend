@@ -2,23 +2,38 @@ import db from "../db/db.js";
 import { RowDataPacket, ResultSetHeader  } from "mysql2";
 
 interface User extends RowDataPacket{
-    id: string;
-    email: string;
-    password: string;
+    id: string,
+    email: string,
+    password: string,
 }
 
-export function getAllUsers(){
+interface Users extends RowDataPacket{
+    id: string,
+    name: string,
+    vorname: string,
+}
+
+export function getAllUsers(): Promise <Users[] | null>{
     return new Promise((resolve, reject) => {
-        db.query<RowDataPacket[]>("SELECT * FROM users_login", (err, results) =>{
+        db.query<Users[]>("SELECT id, name, vorname FROM users", (err, results) =>{
             if (err) return reject(err);
             resolve(results);
         });
     });
 }
 
-export function getUserById(id: string){
+export function getUserPersonalById(id: string): Promise <Users | null>{ //dla zalogowanego użytkownika który chce zedytować dane swojego konta
     return new Promise((resolve, reject) => {
-        db.query<RowDataPacket[]>("SELECT * FROM users WHERE id = ?", [id], (err, results) =>{
+        db.query<Users[]>("SELECT * FROM users WHERE id = ?", [id], (err, results) =>{
+            if (err) return reject(err);
+            resolve(results[0]);
+        });
+    });
+}
+
+export function getUserById(id: string): Promise <Users | null>{ //dla zalogowanego użytkownika który chce sprawdzić profil jednego z znajomych
+    return new Promise((resolve, reject) => {
+        db.query<Users[]>("SELECT id, name, vorname FROM users WHERE id = ?", [id], (err, results) =>{
             if (err) return reject(err);
             resolve(results[0]);
         });
