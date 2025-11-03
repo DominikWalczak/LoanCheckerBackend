@@ -1,4 +1,4 @@
-import db from "../db/db.js";
+import db from "../db/db";
 import { RowDataPacket, ResultSetHeader  } from "mysql2";
 
 interface User extends RowDataPacket{
@@ -51,7 +51,7 @@ export function getUserByEmail(email: string): Promise<User | null> {
     });
   });
 }
-export function createUser(email: string, password: string, name: string, vorname: string, pesel: string) {
+export function createUser(email: string, password: string, name: string, vorname: string, pesel: string){
     return new Promise((resolve, reject) => {
         db.query<ResultSetHeader >(
             "INSERT INTO users_login (password, email) VALUES (?, ?)",

@@ -1,5 +1,5 @@
 import express from "express";
-import { getLoans, getUserLoans, getUserGivenLoans } from "../controllers/loanController.js";
+import { getLoans, getUserLoans, getUserGivenLoans } from "../controllers/loanController";
 
 const router = express.Router();
 

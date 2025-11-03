@@ -1,4 +1,5 @@
-import { getAllUsers, getUserById, getUserByEmail, createUser } from "../models/userModel.js";
+import { getAllUsers, getUserById, getUserByEmail, createUser } from "../models/userModel";
+import jwt from "jsonwebtoken";
 import bcrypt from 'bcrypt';
 import z from "zod";
 import { Request, Response } from "express";
@@ -40,7 +41,10 @@ export async function getUsers(req: Request, res: Response): Promise<void> {
         res.status(200).json(validateData.data);
     } catch (error) {
         console.log(`getUsers Error: ${error}`);
-        res.status(500).json({ message: "Server error" });
+        res.status(500).json({ 
+            message: "getUsers error",
+            error: error,
+         });
     }
 }
 
@@ -61,12 +65,18 @@ export async function getUser(req: Request, res: Response): Promise<void> {
         res.status(200).json(validateData.data);
     } catch (error) {
         console.log(`getUser Error: ${error}`);
-        res.status(500).json({ message: "Server error" });
+        res.status(500).json({ 
+            message: "getUser error",
+            error: error,
+         });
     }
 }
 
 export async function getByEmail(req: Request, res: Response) {
     try {
+        console.log(process.env.ACCESS_SECRET);
+        console.log(process.env.REFRESH_SECRET);
+
         const validateData = getByEmailSchema.safeParse(req.body);
 
         if (!validateData.success) {
@@ -84,19 +94,37 @@ export async function getByEmail(req: Request, res: Response) {
             return res.status(404).json({ message: "User not found" });
         }
 
+        const accessToken = jwt.sign(
+            { userId: user.id, email: user.email },
+            process.env.ACCESS_SECRET!,
+            { expiresIn: "15m" }
+        );
+
+        const refreshToken = jwt.sign(
+            { userId: user.id },
+            process.env.REFRESH_SECRET!,
+            { expiresIn: "7d" }
+        );
+
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
             return res.status(401).json({ message: "Wrong password" });
         }
-
-        return res.status(200).json("valid");
+        return res.status(200).json({ 
+            message: "valid", 
+            accessToken,
+            refreshToken,
+        });
     } catch (error) {
         console.log(`getByEmail Error: ${error}`);
-        return res.status(500).json({ message: "Server error" });
+        return res.status(500).json({ 
+            message: "getByEmail error",
+            error: error,
+         });
     }
 }
 
-export async function addUser(req: Request, res: Response) { // hashowanie bcyptem
+export async function addUser(req: Request, res: Response) { 
     const validateData = addUserSchema.safeParse(req.body);
     if (!validateData.success){
         return res.status(400).json({ 
@@ -111,5 +139,9 @@ export async function addUser(req: Request, res: Response) { // hashowanie bcypt
         res.status(201).json(newUser);
     } catch (error) {
         console.log(`addUser Error: ${error}`);
+        return res.status(500).json({ 
+            message: "addUser error",
+            error: error,
+         });
     }
 }
