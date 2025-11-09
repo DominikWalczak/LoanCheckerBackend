@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from 'bcrypt';
 import z from "zod";
 import { Request, Response } from "express";
+import { generateAccessToken, generateRefreshToken } from "../utils/generateTokens";
 
 const saltRounds = parseInt(process.env.BCRYPT_ROUNDS || '12');
 
@@ -20,7 +21,7 @@ const getByEmailSchema = z.object({
 });
 
 const getUserSchema = z.object({
-    id: z.string("Recieved data wasn't a text"),
+    id: z.number("Recieved data wasn't a number"),
     name: z.string("Recieved data wasn't a text"),
     vorname: z.string("Recieved data wasn't a text"),
 });
@@ -89,22 +90,17 @@ export async function getByEmail(req: Request, res: Response) {
         const { email, password } = validateData.data;
 
         const user = await getUserByEmail(email);
+        console.log(user);
 
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
+        console.log(1234567); // BŁĄD W GENERATEACCESTOKEN
+        const accessToken = generateAccessToken(user.id, user.email);
+        console.log(123456);
 
-        const accessToken = jwt.sign(
-            { userId: user.id, email: user.email },
-            process.env.ACCESS_SECRET!,
-            { expiresIn: "15m" }
-        );
-
-        const refreshToken = jwt.sign(
-            { userId: user.id },
-            process.env.REFRESH_SECRET!,
-            { expiresIn: "7d" }
-        );
+        const refreshToken = generateRefreshToken(user.id, user.email);
+        console.log(1234567890);
 
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {

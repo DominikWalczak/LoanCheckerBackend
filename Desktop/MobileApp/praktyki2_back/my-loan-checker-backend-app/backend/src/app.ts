@@ -3,7 +3,9 @@ import cors from "cors";
 import dotenv from "dotenv";
 import db from "./db/db";
 import usersRouter from "./routes/users"; 
-
+import loansRouter from "./routes/loans"; 
+import friendsRouter from "./routes/friends"; 
+import authRouter from "./routes/auth"; 
 dotenv.config();
 
 const app = express();
@@ -25,6 +27,12 @@ app.get("/", (req, res) => {
 });
 
 app.use("/users", usersRouter);
+
+app.use("/loans", loansRouter);
+
+app.use("/friends", friendsRouter);
+
+app.use("/auth", authRouter);
 
 const PORT = process.env.PORT;
 app.listen(PORT, () => console.log(`Serwer działa na porcie ${PORT}`));
