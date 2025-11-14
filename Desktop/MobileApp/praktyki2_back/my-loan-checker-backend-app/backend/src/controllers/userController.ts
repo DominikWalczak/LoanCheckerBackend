@@ -102,6 +102,20 @@ export async function getByEmail(req: Request, res: Response) {
         const refreshToken = generateRefreshToken(user.id, user.email);
         console.log(1234567890);
 
+        const id = user.id;
+        console.log(1);
+        console.log(1);
+        console.log(1);
+        console.log(1);
+        console.log(1);
+        console.log(id);
+        console.log(user.id);
+        console.log(user);
+        console.log(1);
+        console.log(1);
+        console.log(1);
+        console.log(1);
+        console.log(1);
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
             return res.status(401).json({ message: "Wrong password" });
@@ -110,6 +124,7 @@ export async function getByEmail(req: Request, res: Response) {
             message: "valid", 
             accessToken,
             refreshToken,
+            id,
         });
     } catch (error) {
         console.log(`getByEmail Error: ${error}`);

@@ -1,4 +1,3 @@
-
 CREATE TABLE users_login (
     id INT AUTO_INCREMENT PRIMARY KEY,
     password VARCHAR(255) NOT NULL,
@@ -19,6 +18,18 @@ CREATE TABLE friends (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     friend_id INT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (friend_id) REFERENCES users(id)
+);
+
+CREATE TABLE pending_friend_requests (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    friend_id INT NOT NULL,
+    friend_list_id INT DEFAULT NULL,
+    accepted BOOLEAN DEFAULT 0 NOT NULL, 
+    pending BOOLEAN DEFAULT 1 NOT NULL, 
+    FOREIGN KEY (friend_list_id) REFERENCES friends(id),
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (friend_id) REFERENCES users(id)
 );

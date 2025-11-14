@@ -1,10 +1,15 @@
 import db from "../db/db";
-import { RowDataPacket  } from "mysql2";
+import { RowDataPacket, ResultSetHeader  } from "mysql2";
 
 interface Friend extends RowDataPacket{
-    id: string,
-    user_id: string,
-    friend_id: string,
+    id: number,
+    user_id: number,
+    friend_id: number,
+    friend_list_id?: number | null,
+    accepted?: boolean,
+    pending?: boolean,
+    name?: string,
+    vorname?: string
 }
 
 export function getAllFriends(): Promise<Friend[] | null>{
@@ -24,11 +29,50 @@ export function getAllFriends(): Promise<Friend[] | null>{
     });
  }
 
- export function createFriend(id: string, f_id: string){ 
+ export function createFriend(id: string, f_id: string, requestId: string){ 
+    console.log(13);
     return new Promise((resolve, reject) =>{
-        db.query<RowDataPacket[]>("INSERT INTO friends (user_id, friend_id) VALUES (?, ?)", [id, f_id], 
+        console.log(14);
+        db.query<ResultSetHeader>("INSERT INTO friends (user_id, friend_id) VALUES (?, ?)", [id, f_id], 
             (err, results) => {
             if (err) return reject(err);
+
+            const pendingId = results.insertId; 
+            
+            db.query<ResultSetHeader>("UPDATE pending_friend_requests SET accepted = ?, friend_list_id = ?, pending = ? WHERE id = ? AND pending = ?", [true, pendingId, false, requestId, true], 
+            (err, results2) => {
+            if (err) return reject(err);
+
+                resolve(results2);
+            });
+        });
+    });
+ }
+
+ export function createFriendRequest(id: string, f_id: string){
+    return new Promise((resolve, reject) => {
+        db.query<ResultSetHeader>("INSERT INTO pending_friend_requests (user_id, friend_id) VALUES (?, ?)", [id, f_id], 
+            (err, results) => {
+            if (err) return reject(err);
+            resolve(results);
+        });
+    });
+ }
+
+ export function denyFriendRequest(request_id: string){
+    return new Promise((resolve, reject) =>{
+        db.query<ResultSetHeader>("UPDATE pending_friend_requests SET pending = ? WHERE requestId = ?", [false, request_id] ,(err, results) => {
+            if (err) return reject(err);
+            resolve(results);
+        });
+    });
+ }
+
+ export function getFriendRequests(id: string): Promise<Friend[] | null> {
+    return new Promise((resolve, reject) =>{
+        db.query<Friend[]>("SELECT p.id, p.user_id, p.friend_id, p.accepted, p.pending, u.name, u.vorname FROM pending_friend_requests AS p JOIN users AS u ON p.user_id = u.id WHERE p.friend_id = ? AND p.pending = ?", [id, true] ,(err, results) => {
+            if (err) return reject(err);
+            console.log(results)
             resolve(results);
         });
     });

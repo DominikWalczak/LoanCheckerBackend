@@ -43,7 +43,7 @@ export function getUserById(id: string): Promise <Users | null>{ //dla zalogowan
 export function getUserByEmail(email: string): Promise<User | null> {
   return new Promise((resolve, reject) => {
     db.query<User[]>(
-      "SELECT * FROM users_login WHERE email = ?",
+      "SELECT * FROM users_login JOIN users ON users.login_id = users_login.id WHERE email = ?",
       [email],
       (err, results) => {
         if (err) return reject(err);
@@ -56,18 +56,18 @@ export function createUser(email: string, password: string, name: string, vornam
         db.query<ResultSetHeader >(
             "INSERT INTO users_login (password, email) VALUES (?, ?)",
             [password, email],
-            (err, result) => {
+            (err, results) => {
                 if (err) return reject(err);
 
-                const loginId = result.insertId; 
+                const loginId = results.insertId; 
 
 
                 db.query<ResultSetHeader>(
                     "INSERT INTO users (name, vorname, pesel, login_id) VALUES (?, ?, ?, ?)",
                     [name, vorname, pesel, loginId],
-                    (err2, result2) => {
+                    (err2, results2) => {
                         if (err2) return reject(err2);
-                        resolve(result2);
+                        resolve(results2);
                     }
                 );
             }
