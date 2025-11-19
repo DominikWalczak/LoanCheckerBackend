@@ -22,6 +22,16 @@ export function getAllUsers(): Promise <Users[] | null>{
     });
 }
 
+export function getAllUninvitedUsers(): Promise <Users[] | null>{
+    return new Promise((resolve, reject) => {
+        db.query<Users[]>("SELECT u.id, u.name, u.vorname FROM pending_friend_requests AS p JOIN friends AS f ON p.friend_id = f.friend_id JOIN users AS u ON u.id = p.user_id WHERE p.pending = false AND NOT EXISTS(SELECT * FROM friends AS f2 WHERE f2.friend_id = f.friend_id)", (err, results) =>{
+            if (err) return reject(err);
+            resolve(results);
+        });
+    });
+}
+
+
 export function getUserPersonalById(id: string): Promise <Users | null>{ //dla zalogowanego użytkownika który chce zedytować dane swojego konta
     return new Promise((resolve, reject) => {
         db.query<Users[]>("SELECT * FROM users WHERE id = ?", [id], (err, results) =>{

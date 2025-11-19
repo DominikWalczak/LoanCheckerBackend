@@ -1,4 +1,4 @@
-import { getAllFriends, getAllUserFriends, createFriend, createFriendRequest, denyFriendRequest, getFriendRequests } from "../models/friendModel";
+import { getAllFriends, getAllUserFriends, createFriend, createFriendRequest, denyFriendRequest, getFriendRequests, checkFriendRequest } from "../models/friendModel";
 import { Request, Response } from "express";
 import z from "zod";
 
@@ -15,7 +15,7 @@ export async function getFriends(req: Request, res: Response){
         const friends = await getAllFriends();
         res.status(200).json(friends);
     } catch (error) {
-        console.log(`getUsers Error: ${error}`);
+        console.log(`getFriends Error: ${error}`);
         res.status(500).json({ 
             message: "getFriends error",
             error: error,
@@ -25,10 +25,12 @@ export async function getFriends(req: Request, res: Response){
 
 export async function getUserFriends(req: Request, res: Response){
     try {
-        const friends = await getAllUserFriends(req.params.id);
+        const { id }: FriendSchema = req.body.id;
+        if (!id) return res.status(400).json({ error: "We lack the IDs"})
+        const friends = await getAllUserFriends(id);
         res.status(200).json(friends);
     } catch (error) {
-        console.log(`getUsers Error: ${error}`);
+        console.log(`getUserFriends Error: ${error}`);
         res.status(500).json({ 
             message: "getUserFriends error",
             error: error,
@@ -46,12 +48,15 @@ export async function addFriend(req: Request, res: Response){
         console.log(11);
         if(!id || !f_id) return res.status(400).json({ error: "We lack one of the IDs"})
         console.log(12);
+        const request = await checkFriendRequest(id, f_id);
+        console.log(request)
+        if (request) return res.status(400).json({ error: "There is already pending invite"});
         const newFriend = await createFriendRequest(id, f_id);
         console.log(15);
         console.log(newFriend);
         res.status(201);
     } catch (error) {
-        console.log(`getUsers Error: ${error}`);
+        console.log(`addFriend Error: ${error}`);
         res.status(500).json({ 
             message: "addFriend error",
             error: error,
@@ -73,9 +78,9 @@ export async function acceptFriend(req: Request, res: Response) {
         console.log(newFriend);
         res.status(201);
     } catch (error) {
-        console.log(`getUsers Error: ${error}`);
+        console.log(`acceptFriend Error: ${error}`);
         res.status(500).json({ 
-            message: "addFriend error",
+            message: "acceptFriend error",
             error: error,
          });
     }
@@ -94,9 +99,9 @@ export async function denyFriend(req: Request, res: Response) {
         console.log(newFriend);
         res.status(201);
     } catch (error) {
-        console.log(`getUsers Error: ${error}`);
+        console.log(`denyFriend Error: ${error}`);
         res.status(500).json({ 
-            message: "addFriend error",
+            message: "denyFriend error",
             error: error,
          });
     }
@@ -115,9 +120,9 @@ export async function getRequests(req: Request, res: Response) {
         console.log(Requests);
         res.status(201).json(Requests);
     } catch (error) {
-        console.log(`getUsers Error: ${error}`);
+        console.log(`getRequests Error: ${error}`);
         res.status(500).json({ 
-            message: "addFriend error",
+            message: "getRequests error",
             error: error,
          });
     }

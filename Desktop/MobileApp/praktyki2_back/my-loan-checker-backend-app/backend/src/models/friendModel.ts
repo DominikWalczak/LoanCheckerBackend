@@ -22,7 +22,7 @@ export function getAllFriends(): Promise<Friend[] | null>{
 }
  export function getAllUserFriends(id: string): Promise<Friend[] | null>{
     return new Promise((resolve, reject) =>{
-        db.query<Friend[]>("SELECT * FROM friends WHERE user_id=?", [id], (err, results) =>{
+        db.query<Friend[]>("SELECT f.id, f.user_id, f.friend_id, u.name, u.vorname FROM friends AS f JOIN users AS u ON u.user_id = f.user_id WHERE user_id=?", [id], (err, results) =>{
         if (err) return reject;
         resolve(results);
         });
@@ -45,6 +45,15 @@ export function getAllFriends(): Promise<Friend[] | null>{
 
                 resolve(results2);
             });
+        });
+    });
+ }
+
+ export function checkFriendRequest(id: string, f_id: string){
+    return new Promise((resolve, reject) => {
+        db.query<Friend[]>("SELECT * FROM pending_friend_requests WHERE user_id = ? AND friend_id = ?", [id, f_id], (err, results) => {
+            if (err) return reject(err);
+            resolve(results);
         });
     });
  }
