@@ -1,4 +1,4 @@
-import { getAllFriends, getAllUserFriends, createFriend, createFriendRequest, denyFriendRequest, getFriendRequests, checkFriendRequest } from "../models/friendModel";
+import { getAllFriends, getAllUserFriends, createFriend, createFriendRequest, getUninvitedUsers, denyFriendRequest, getFriendRequests, checkFriendRequest } from "../models/friendModel";
 import { Request, Response } from "express";
 import z from "zod";
 
@@ -50,11 +50,11 @@ export async function addFriend(req: Request, res: Response){
         console.log(12);
         const request = await checkFriendRequest(id, f_id);
         console.log(request)
-        if (request) return res.status(400).json({ error: "There is already pending invite"});
+        if (request.length > 0) return res.status(400).json({ error: "There is already pending invite"});
         const newFriend = await createFriendRequest(id, f_id);
         console.log(15);
         console.log(newFriend);
-        res.status(201);
+        res.status(201).json({ message: "success"});
     } catch (error) {
         console.log(`addFriend Error: ${error}`);
         res.status(500).json({ 
@@ -76,7 +76,7 @@ export async function acceptFriend(req: Request, res: Response) {
         const newFriend = await createFriend(id, f_id, request_id);
         console.log(15);
         console.log(newFriend);
-        res.status(201);
+        res.status(201).json({message: "success"});
     } catch (error) {
         console.log(`acceptFriend Error: ${error}`);
         res.status(500).json({ 
@@ -97,7 +97,7 @@ export async function denyFriend(req: Request, res: Response) {
         const newFriend = await denyFriendRequest(request_id);
         console.log(15);
         console.log(newFriend);
-        res.status(201);
+        res.status(201).json({message: "success"});
     } catch (error) {
         console.log(`denyFriend Error: ${error}`);
         res.status(500).json({ 
@@ -115,10 +115,10 @@ export async function getRequests(req: Request, res: Response) {
         console.log(11);
         if(!id) return res.status(400).json({ error: "We lack one of the IDs"})
         console.log(12);
-        const Requests = await getFriendRequests(id);
+        const requests = await getFriendRequests(id);
         console.log(15);
-        console.log(Requests);
-        res.status(201).json(Requests);
+        console.log(requests);
+        res.status(201).json(requests);
     } catch (error) {
         console.log(`getRequests Error: ${error}`);
         res.status(500).json({ 
@@ -128,3 +128,24 @@ export async function getRequests(req: Request, res: Response) {
     }
 
 } // Tu zakończyłem
+
+export async function getUninvited(req: Request, res: Response){
+    try {
+        console.log(10);
+        const { id }: FriendSchema = req.body;
+        console.log(req.body);
+        console.log(11);
+        console.log(id);
+        if(!id) return res.status(400).json({ error: "We lack one of the IDs"})
+        const uninvited = await getUninvitedUsers(id);
+        console.log(uninvited);
+        res.status(201).json(uninvited);
+    } catch (error) {
+        console.log(`getUninvited Error: ${error}`);
+        res.status(500).json({ 
+            message: "getUninvited error",
+            error: error,
+         });
+    }
+    
+}

@@ -49,11 +49,11 @@ export function getAllFriends(): Promise<Friend[] | null>{
     });
  }
 
- export function checkFriendRequest(id: string, f_id: string){
+ export function checkFriendRequest(id: string, f_id: string): Promise<Friend[]>{
     return new Promise((resolve, reject) => {
-        db.query<Friend[]>("SELECT * FROM pending_friend_requests WHERE user_id = ? AND friend_id = ?", [id, f_id], (err, results) => {
+        db.query<Friend[]>("SELECT * FROM pending_friend_requests WHERE user_id = ? AND friend_id = ? AND pending = ?", [id, f_id, true], (err, results) => {
             if (err) return reject(err);
-            resolve(results);
+            resolve(results ?? []);
         });
     });
  }
@@ -70,7 +70,7 @@ export function getAllFriends(): Promise<Friend[] | null>{
 
  export function denyFriendRequest(request_id: string){
     return new Promise((resolve, reject) =>{
-        db.query<ResultSetHeader>("UPDATE pending_friend_requests SET pending = ? WHERE requestId = ?", [false, request_id] ,(err, results) => {
+        db.query<ResultSetHeader>("UPDATE pending_friend_requests SET pending = ? WHERE id = ?", [false, request_id] ,(err, results) => {
             if (err) return reject(err);
             resolve(results);
         });
@@ -83,6 +83,35 @@ export function getAllFriends(): Promise<Friend[] | null>{
             if (err) return reject(err);
             console.log(results)
             resolve(results);
+        });
+    });
+ }
+
+ export function getUninvitedUsers(id: string): Promise<Friend[] | null> {
+    return new Promise((resolve, reject) =>{
+        db.query<Friend[]>(`SELECT u.id, u.name, u.vorname
+                            FROM users u
+                            WHERE NOT EXISTS (
+                                SELECT 1
+                                FROM pending_friend_requests p
+                                WHERE 
+                                    (
+                                        (p.user_id = ? AND p.friend_id = u.id)
+                                        OR
+                                        (p.user_id = u.id AND p.friend_id = ?)
+                                    )
+                                    AND p.accepted = 1
+                            )
+                            AND NOT EXISTS (
+                                SELECT 1
+                                FROM pending_friend_requests p2
+                                WHERE 
+                                    (p2.user_id = ? AND p2.friend_id = u.id)
+                                    AND p2.pending = 1)`, [id, id, id] ,
+            (err, results) => {
+                if (err) return reject(err);
+                console.log(results)
+                resolve(results);
         });
     });
  }
