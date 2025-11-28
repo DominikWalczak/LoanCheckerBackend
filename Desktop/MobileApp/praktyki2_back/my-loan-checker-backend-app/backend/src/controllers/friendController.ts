@@ -1,4 +1,4 @@
-import { getAllFriends, getAllUserFriends, createFriend, createFriendRequest, getUninvitedUsers, denyFriendRequest, getFriendRequests, checkFriendRequest } from "../models/friendModel";
+import { getAllFriends, deleteMyFriendRequest, getAllUserFriends, createFriend, createFriendRequest, getUninvitedUsers, denyFriendRequest, getFriendRequests, checkFriendRequest, getMyFriendRequests } from "../models/friendModel";
 import { Request, Response } from "express";
 import z from "zod";
 
@@ -25,9 +25,12 @@ export async function getFriends(req: Request, res: Response){
 
 export async function getUserFriends(req: Request, res: Response){
     try {
-        const { id }: FriendSchema = req.body.id;
+        const { id }: FriendSchema = req.body;
+        console.log(id)
         if (!id) return res.status(400).json({ error: "We lack the IDs"})
+        console.log(1)
         const friends = await getAllUserFriends(id);
+        console.log(2)
         res.status(200).json(friends);
     } catch (error) {
         console.log(`getUserFriends Error: ${error}`);
@@ -148,4 +151,42 @@ export async function getUninvited(req: Request, res: Response){
          });
     }
     
+}
+
+export async function getMyRequests(req: Request, res: Response){
+    try {
+        console.log(20);
+        const { id }: FriendSchema = req.body;
+        console.log(21);
+        console.log(id);
+        if(!id) return res.status(400).json({error: "We lack one of the IDs"})
+        const myRequests = await getMyFriendRequests(id);
+        console.log(myRequests);
+        res.status(201).json(myRequests);
+    } catch (error) {
+        console.log(`getMyRequests Error: ${error}`);
+        res.status(500).json({ 
+            message: "getMyRequests error",
+            error: error,
+         });
+    }
+}
+
+export async function deleteFriendRequest(req: Request, res: Response) {
+    try {
+        console.log(30);
+        const { id }: FriendSchema = req.body;
+        console.log(31);
+        console.log(id);
+        if(!id) return res.status(400).json({error: "We lack one of the IDs"})
+        console.log(32);
+        const deleteRequest = deleteMyFriendRequest(id);
+        res.status(201).json("deleted");
+    } catch (error) {
+        console.log(`deleteFriendRequest Error: ${error}`);
+        res.status(500).json({ 
+            message: "deleteFriendRequest error",
+            error: error,
+         });
+    }
 }

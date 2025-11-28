@@ -45,3 +45,9 @@ CREATE TABLE loans (
     FOREIGN KEY (lender_id) REFERENCES users(id),
     FOREIGN KEY (borrower_id) REFERENCES users(id)
 );
+
+DROP TABLE pending_friend_requests;
+DROP TABLE friends;
+DROP TABLE loans;
+DROP TABLE users;
+DROP TABLE users_login;

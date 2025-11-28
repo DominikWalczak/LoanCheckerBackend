@@ -24,6 +24,7 @@ export function getAllFriends(): Promise<Friend[] | null>{
     return new Promise((resolve, reject) =>{
         db.query<Friend[]>("SELECT f.id, f.user_id, f.friend_id, u.name, u.vorname FROM friends AS f JOIN users AS u ON u.user_id = f.user_id WHERE user_id=?", [id], (err, results) =>{
         if (err) return reject;
+        console.log(results)
         resolve(results);
         });
     });
@@ -79,7 +80,7 @@ export function getAllFriends(): Promise<Friend[] | null>{
 
  export function getFriendRequests(id: string): Promise<Friend[] | null> {
     return new Promise((resolve, reject) =>{
-        db.query<Friend[]>("SELECT p.id, p.user_id, p.friend_id, p.accepted, p.pending, u.name, u.vorname FROM pending_friend_requests AS p JOIN users AS u ON p.user_id = u.id WHERE p.friend_id = ? AND p.pending = ?", [id, true] ,(err, results) => {
+        db.query<Friend[]>("SELECT p.id, p.user_id, p.friend_id, p.accepted, p.pending, u.name, u.vorname FROM pending_friend_requests AS p JOIN users AS u ON p.user_id = u.id WHERE p.friend_id = ? AND p.pending = ? AND p.accepted = ?", [id, true, false] ,(err, results) => {
             if (err) return reject(err);
             console.log(results)
             resolve(results);
@@ -112,6 +113,24 @@ export function getAllFriends(): Promise<Friend[] | null>{
                 if (err) return reject(err);
                 console.log(results)
                 resolve(results);
+        });
+    });
+ }
+
+ export function getMyFriendRequests(id: string): Promise<Friend[] | null> {
+    return new Promise((resolve, reject) => {
+        db.query<Friend[]>("SELECT u.name, u.vorname, p.id FROM users AS u JOIN pending_friend_requests AS p ON u.id = p.friend_id WHERE p.user_id = ? AND p.pending = ? AND p.accepted = ?", [id, true, false], (err, results) => {
+            if (err) return reject(err);
+            resolve(results);
+        });
+    });
+ }
+
+ export function deleteMyFriendRequest(id: string){
+    return new Promise((resolve, reject) =>{
+        db.query<ResultSetHeader[]>("DELETE from pending_friend_requests WHERE id = ?", [id], (err, results) => {
+            if (err) reject(err);
+            resolve(results);
         });
     });
  }
